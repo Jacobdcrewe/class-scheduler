@@ -1,11 +1,20 @@
 import pandas as pd
 import json
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
+# Allow all origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.get("/classes/")
+@app.get("/api/classes/")
 async def get_classes(year: int = 1, department = None):
     # load the classes
     classes = pd.read_excel('schedule.xlsx', sheet_name='sheet1')
@@ -59,18 +68,31 @@ async def get_classes(year: int = 1, department = None):
         classes_json = new_classes
         
         # createa a new array to return the classes that start with the year
-        new_classes = []
-        for c in classes_json:
-            if c['class_code'].startswith(str(year)):
-                new_classes.append(c)
+        if year:
 
-        classes_json = new_classes
+            new_classes = []
+            for c in classes_json:
+                if c['class_code'].startswith(str(year)):
+                    new_classes.append(c)
+
+            classes_json = new_classes
+        
+        # convert the start and end times to times and convert the format from HH.MM to HH:MM
+        for c in classes_json:
+            if c['start']:
+                if '.' in str(c['start']):
+                    if len(str(c['start']).split('.')[1]) == 1:
+                        c['start'] = str(c['start']) + '0'
+                    c['start'] = str(c['start']).replace('.', ':')
+                else:
+                    c['start'] = str(c['start']) + ':00'
+            if c['end']:
+                if '.' in str(c['end']):
+                    if len(str(c['end']).split('.')[1]) == 1:
+                        c['end'] = str(c['end']) + '0'
+                    c['end'] = str(c['end']).replace('.', ':')
+                else:
+                    c['end'] = str(c['end']) + ':00'
         return classes_json
     else:
         return {'error': 'department not found'}
-
-
-
-
-
-
