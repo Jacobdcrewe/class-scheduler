@@ -15,12 +15,8 @@ app.add_middleware(
 )
 
 @app.get("/api/classes/")
-async def get_classes(year: int = 1, department = None):
-    # load the classes
-    classes = pd.read_excel('schedule.xlsx', sheet_name='sheet1')
-
-    # rename the columns
-    classes.columns = ['code', 'department', 'class_code', 'class_name', 'lecture_code', 'day_of_week', 'start', 'end', 'room', 'instructor']
+async def get_classes(year: int = 0, department = None):
+    classes = read_classes()
     # show teh 3rd column of the excel doc
     # print(classes.iloc[:, 3].head())
     # print(classes['class_name'].head())
@@ -102,3 +98,73 @@ async def get_classes(year: int = 1, department = None):
         return classes_json
     else:
         return {'error': 'department not found'}
+
+@app.get("/api/departments/")
+async def get_departments(year: int = 0):
+    classes = read_classes()
+    # get the dapartments
+    departments = []
+    if not classes.empty:
+        classes = json.loads(classes.to_json(orient='records'))
+
+        # remove spaces from the class names
+        for c in classes:
+            if c['class_code']:
+                c['class_code'] = c['class_code'].replace(' ', '')
+            else:
+                print(c)
+
+        if year == 0:
+            departments = json.loads(classes['department'].to_json(orient='records'))
+        else:
+            for c in classes:
+                if c['class_code'] and c['class_code'][0] == str(year):
+                    departments.append(c['department'])
+                # if c['class_code'][0] == str(year):
+                    # departments.append(c['department'])            
+        
+        # remove duplicates and null values
+        new_departments = []
+        for d in departments:
+            if d not in new_departments and d and not d == "Subject":
+                new_departments.append(d)
+        departments = new_departments
+        departments.sort()
+    return departments
+
+@app.get("/api/years/")
+async def get_years():
+    classes = read_classes()
+    # get the years
+    years = []
+    if not classes.empty:
+        classes = json.loads(classes.to_json(orient='records'))
+
+        # remove spaces from the class names
+        for c in classes:
+            if c['class_code']:
+                c['class_code'] = c['class_code'].replace(' ', '')
+            else:
+                print(c)
+
+        for c in classes:
+            if c['class_code'] and c['class_code'][0] not in years and c['class_code'][0] != 'C':
+                years.append(c['class_code'][0])
+        
+        # remove duplicates and null values
+        new_years = []
+        for y in years:
+            if y not in new_years and y:
+                new_years.append(int(y))
+        years = new_years
+        years.sort()
+    
+    return years
+
+def read_classes(): 
+    # load the classes
+    classes = pd.read_excel('schedule.xlsx', sheet_name='sheet1')
+
+    # rename the columns
+    classes.columns = ['code', 'department', 'class_code', 'class_name', 'lecture_code', 'day_of_week', 'start', 'end', 'room', 'instructor']
+    return classes
