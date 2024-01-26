@@ -3,6 +3,10 @@ Latest version of node
 Latest version of python
 Latest version of pip
 
+# Simple way to run
+double click `run.bat`
+
+
 ## Installing server dependencies
 run in the workspace `pip install -r requirements.txt`
 
