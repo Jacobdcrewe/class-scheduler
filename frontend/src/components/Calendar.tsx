@@ -5,6 +5,8 @@ interface CalendarProps {
     start_time: number;
     end_time: number;
     calendar_height?: number;
+    year: number;
+    department: string;
 }
 
 const url = "http://localhost:8000";
@@ -38,7 +40,7 @@ function Calendar(props: CalendarProps) {
 
     useEffect(() => {
         const fetchData = async () => {
-            const data = await getCalendarData(3, "ENGPHYS");
+            const data = await getCalendarData(props.year, props.department);
             setCalendarData(data);
         }
         fetchData();
@@ -57,19 +59,33 @@ function Calendar(props: CalendarProps) {
             var end = convertTimeToNumberal(x.end) - props.start_time;
             var block_height = (end - start) * (calendarHeight - 24) / (props.end_time - props.start_time);
             var num_overlaps = 0;
+            if(x.overlap_pos === undefined) {
+                x.overlap_pos = 0;
+            }
             calendarData.forEach((y: Class) => {
-                if (x !== y && ((x.start >= y.start && x.start <= y.end) || (x.end >= y.start && x.end <= y.end)) && x.day_of_week === y.day_of_week) {
+                
+                if (((x.start >= y.start && x.start <= y.end) || (x.end >= y.start && x.end <= y.end)) && x.day_of_week === y.day_of_week) {
                     console.log(x.class_name + x.start + " overlaps with " + y.start + y.class_name)
                     num_overlaps++;
+                    if(x != y) {
+                        if(y.overlap_pos === undefined) {
+                            y.overlap_pos = 1;
+                        } else {
+                            y.overlap_pos += 1;
+                        }
+                    }
                 }
             })
+
+            var wid = document.getElementById(`calendar_${day}`)?.clientWidth || 0;
 
             tempClassBlocks.push({
                 class: x,
                 day: day,
                 height: block_height,
                 top: start * (calendarHeight - 24) / (props.end_time - props.start_time),
-                overlaps: num_overlaps
+                overlaps: num_overlaps,
+                overlap_pos: x.overlap_pos * wid/ num_overlaps
             });
         });
 
@@ -116,11 +132,11 @@ function Calendar(props: CalendarProps) {
                 <div className="flex grow pl-16 z-20 ">
                     <div className="grid grid-cols-5 grow gap-x-4 gap-y-[1px] mx-4 mt-5 mb-7">
                         {days.map((day) => (
-                            <div className="flex-col flex relative" style={{ height: (calendarHeight - 24) + "px" }}>
+                            <div className="flex flex-col relative w-full" style={{ height: (calendarHeight - 24) + "px" }} id={`calendar_${day}`}>
                                 {classBlocks.map((x: ClassBlock) => (
-                                    <div className={`flex flex-col justify-center items-center absolute w-full`} style={{ height: x.height, top: x.top + "px"}}>
+                                    <div className={`flex flex-col justify-center items-center absolute px-2`} style={{ height: x.height, top: x.top + "px", width: (x.overlaps > 0 ? (100/x.overlaps) : 100) + "%", left: x.overlap_pos}}>
                                         {x.day === day && (
-                                            <div className="overflow-hidden overscroll-contain w-full items-center justify-center flex flex-col h-full rounded-xl w-full bg-blue-100 text-center outline outline-blue-200 " >
+                                            <div className={`overflow-hidden overscroll-contain w-full items-center justify-center flex flex-col h-full rounded-xl w-full ${x.overlaps > 1 ? 'bg-red-100 outline-red-600' : 'bg-blue-100'} text-center outline outline-blue-200 `} >
                                                 <p className="text-neutral-900 text-sm">{x.class.class_name}</p>
                                                 <p className="text-neutral-900 text-sm">{x.class.start} - {x.class.end}</p>
                                                 <p className="text-neutral-900 text-sm ">{x.class.room}</p>

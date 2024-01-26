@@ -5,7 +5,8 @@ interface ClassBlock {
     day: string,
     height: number,
     top: number,
-    overlaps: number
+    overlaps: number,
+    overlap_pos: number
 }
 
 export default ClassBlock;

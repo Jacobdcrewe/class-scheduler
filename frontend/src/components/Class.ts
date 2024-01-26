@@ -8,7 +8,8 @@ interface Class {
     start: string,
     end: string,
     room?: string,
-    instructor?: string
+    instructor?: string,
+    overlap_pos?: number
 }
 
 export default Class;

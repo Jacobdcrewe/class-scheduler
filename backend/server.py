@@ -86,6 +86,9 @@ async def get_classes(year: int = 1, department = None):
                     c['start'] = str(c['start']).replace('.', ':')
                 else:
                     c['start'] = str(c['start']) + ':00'
+                
+                if c['start'].startswith('0'):
+                    c['start'] = c['start'][1:]
             if c['end']:
                 if '.' in str(c['end']):
                     if len(str(c['end']).split('.')[1]) == 1:
@@ -93,6 +96,9 @@ async def get_classes(year: int = 1, department = None):
                     c['end'] = str(c['end']).replace('.', ':')
                 else:
                     c['end'] = str(c['end']) + ':00'
+                
+                if c['end'].startswith('0'):
+                    c['end'] = c['end'][1:]
         return classes_json
     else:
         return {'error': 'department not found'}
