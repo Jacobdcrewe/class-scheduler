@@ -7,30 +7,18 @@ import jsPDF from 'jspdf';
 const url = "http://localhost:8000";
 function Main() {
   const [year, setYear] = useState(3);
-  const [yearOptions, setYearOptions] = useState([]);
+  const yearOptions = [1,2,3,4,5];
   const [department, setDepartment] = useState("ENGPHYS");
-  const [departmentOptions, setDepartmentOptions] = useState([]);
+  const [departmentOptions, setDepartmentOptions] = useState(["ENGPHYS"]);
   const [height, setHeight] = useState(768);
 
-  useEffect(() => {
-    const getYears = async () => {
-      const response = await fetch(`${url}/api/years/`);
-      const data = await response.json();
-      if (data) {
-        setYearOptions(data);
-      }
-
-    }
-
-    getYears()
-  }, [])
 
   useEffect(() => {
     const getDepartments = async () => {
-      const response = await fetch(`${url}/api/departments?year=${year}`);
+      const response = await fetch(`${url}/api/extra_sections/?level=${year}`);
       const data = await response.json();
       if (data) {
-        setDepartmentOptions(data);
+        setDepartmentOptions(["ENGPHYS", ...data]);
       }
 
     }

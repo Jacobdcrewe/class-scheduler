@@ -11,7 +11,7 @@ interface CalendarProps {
 
 const url = "http://localhost:8000";
 const getCalendarData = async (year: number, department: string) => {
-    const response = await fetch(`${url}/api/classes/?year=${year}&department=${department}`);
+    const response = await fetch(`${url}/api/classes/?year=${year}&departments=${department}`);
     const data = await response.json();
     return data;
 
@@ -140,7 +140,7 @@ function Calendar(props: CalendarProps) {
                                     <div className={`flex flex-col justify-center items-center absolute px-2`} style={{ height: x.height, top: x.top + "px", width: (x.overlaps > 0 ? (100 / x.overlaps) : 100) + "%", left: x.overlap_pos }}>
                                         {x.day === day && (
                                             <div className={`overflow-hidden overscroll-contain w-full items-center justify-center flex flex-col h-full rounded-xl w-full ${x.overlaps > 1 ? 'bg-red-100 outline-red-600' : 'bg-blue-100'} text-center outline outline-blue-200 `} >
-                                                <p className="text-neutral-900 text-sm">{x.class.class_name}</p>
+                                                <p className="text-neutral-900 text-sm">{x.class.department} {x.class.class_code}</p>
                                                 <p className="text-neutral-900 text-sm">{x.class.start} - {x.class.end}</p>
                                                 <p className="text-neutral-900 text-sm ">{x.class.room}</p>
                                             </div>

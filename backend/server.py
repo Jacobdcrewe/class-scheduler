@@ -15,12 +15,13 @@ app.add_middleware(
 )
 
 @app.get("/api/classes/")
-async def get_classes(year: int = 0, department = None):
+async def get_classes(year: int = 0, departments: str = "ENGPHYS"):
     classes = read_classes()
     # show teh 3rd column of the excel doc
     # print(classes.iloc[:, 3].head())
     # print(classes['class_name'].head())
 
+    department = departments.split()[0]
     classes_json = []
     if department:
         department = department.upper()
@@ -40,14 +41,33 @@ async def get_classes(year: int = 0, department = None):
                     new_classes.append(c)
             classes_json = new_classes
     
+    
+    
        
     if classes_json != []:
+        
         # remove spaces from the class names
         for c in classes_json:
             if c['class_code']:
                 c['class_code'] = c['class_code'].replace(' ', '')
             else:
                 print(c)
+
+        
+        
+        # createa a new array to return the classes that start with the year
+        if year:
+
+            new_classes = []
+            for c in classes_json:
+                if c['class_code'].startswith(str(year)):
+                    new_classes.append(c)
+
+            classes_json = new_classes
+        
+        extras = read_extras(year, departments)
+        if extras:
+            classes_json = classes_json + extras
 
         # if any class has day_of_week = name of day separated by a space (ex. Mo Tue) duplicate object and make them into separate objects (undefined number of spaces)
         new_classes = []
@@ -62,17 +82,7 @@ async def get_classes(year: int = 0, department = None):
                 new_classes.append(c)
 
         classes_json = new_classes
-        
-        # createa a new array to return the classes that start with the year
-        if year:
 
-            new_classes = []
-            for c in classes_json:
-                if c['class_code'].startswith(str(year)):
-                    new_classes.append(c)
-
-            classes_json = new_classes
-        
         # convert the start and end times to times and convert the format from HH.MM to HH:MM
         for c in classes_json:
             if c['start']:
@@ -161,6 +171,15 @@ async def get_years():
     
     return years
 
+@app.get("/api/extra_sections/")
+async def get_extra_sections(level: int = 1):
+    return json.loads(json.dumps(read_extra_sections_on_level(level)))
+
+
+@app.get("/api/extras/")
+async def get_extras(level: int = 1, section: str = None):
+
+    return json.loads(json.dumps(read_extras(level, section)))
 def read_classes(): 
     # load the classes
     classes = pd.read_excel('schedule.xlsx', sheet_name='sheet1')
@@ -168,3 +187,55 @@ def read_classes():
     # rename the columns
     classes.columns = ['code', 'department', 'class_code', 'class_name', 'lecture_code', 'day_of_week', 'start', 'end', 'room', 'instructor']
     return classes
+
+def read_extra_sections_on_level(level):
+    # load the extras
+    extras = pd.read_excel('formatting.xlsx', sheet_name='Sheet1')    
+    # rename the columns
+    extras.columns = ['code', 'department', 'class_code', 'class_name', 'lecture_code', 'day_of_week', 'start', 'end', 'room']
+    extras.dropna(how='all', inplace=True)
+    
+    # Separate into separate sections based on headings
+    sections = []
+    current_section = None
+    for index, row in extras.iterrows():
+        if not isinstance(row['code'], int) and row['code'].startswith('LEVEL'):
+            current_section = row['code']
+            section_stats = current_section.split()
+            section_level = int(section_stats[1])
+            section = ' '.join(section_stats[2:])
+            if section_level == level:
+                sections.append(section)
+    return sections
+
+def read_extras(level, section):
+    print(level, section)
+    # load the extras
+    extras = pd.read_excel('formatting.xlsx', sheet_name='Sheet1')    
+    # rename the columns
+    extras.columns = ['code', 'department', 'class_code', 'class_name', 'lecture_code', 'day_of_week', 'start', 'end', 'room']
+    extras.dropna(how='all', inplace=True)
+    
+    # Separate into separate sections based on headings
+    sections = []
+    current_section = None
+    for index, row in extras.iterrows():
+        if not isinstance(row['code'], int) and row['code'].startswith('LEVEL'):
+            current_section = row['code']
+            section_stats = current_section.split()
+            level = int(section_stats[1])
+            sec = ' '.join(section_stats[2:])
+            sections.append({'level': level, 'section': sec, 'classes': []})
+        else:
+            if current_section:
+                sec = sections[-1]
+                sec['classes'].append(row.to_dict())
+    
+    # Filter classes based on level and section
+    filtered_classes = []
+    for s in sections:
+        if s['level'] == level and s['section'] == section:
+            filtered_classes = s['classes']
+            break
+    
+    return filtered_classes
