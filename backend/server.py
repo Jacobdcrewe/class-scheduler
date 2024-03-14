@@ -209,7 +209,6 @@ def read_extra_sections_on_level(level):
     return sections
 
 def read_extras(level, section):
-    print(level, section)
     # load the extras
     extras = pd.read_excel('formatting.xlsx', sheet_name='Sheet1')    
     # rename the columns
@@ -223,17 +222,19 @@ def read_extras(level, section):
         if not isinstance(row['code'], int) and row['code'].startswith('LEVEL'):
             current_section = row['code']
             section_stats = current_section.split()
-            level = int(section_stats[1])
+            lvl = int(section_stats[1])
             sec = ' '.join(section_stats[2:])
-            sections.append({'level': level, 'section': sec, 'classes': []})
+            sections.append({'level': lvl, 'section': sec, 'classes': []})
         else:
             if current_section:
                 sec = sections[-1]
                 sec['classes'].append(row.to_dict())
-    
+
     # Filter classes based on level and section
     filtered_classes = []
     for s in sections:
+        print(s['level'], level)
+        print(s['section'], section)
         if s['level'] == level and s['section'] == section:
             filtered_classes = s['classes']
             break
