@@ -16,6 +16,7 @@ run in the workspace `pip install -r requirements.txt`
 
 ## Running server
 redirect to workspace > backend
+dasfdsa
 
 in command prompt run `python -m uvicorn server:app --reload`
 
