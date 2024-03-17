@@ -110,7 +110,7 @@ function Calendar(props: CalendarProps) {
 
     return (
         <div className="w-full h-full flex flex-col overflow-auto relative min-w-[700px]" id="div_to_print">
-            <div className="pl-16 flex flex-row w-full sticky top-0 bg-white z-40" id="header_calendar">
+            <div className="pl-16 flex flex-row w-full sticky top-0 bg-white z-30" id="header_calendar">
                 <div className="grow grid grid-cols-5 bg-white gap-4 py-4 px-4">
                     {days.map((day) => (
                         <div key={day + "_day"} className="flex flex-col justify-center items-center">
@@ -119,9 +119,9 @@ function Calendar(props: CalendarProps) {
                     ))}
                 </div>
             </div>
-            <div className="flex flex-row flex-grow relative z-0">
-                <div className="absolute grow w-full">
-                    <div className={`w-full flex flex-col justify-between mt-2 mb-4 z-10`} style={{ height: props.calendar_height }}>
+            <div className="flex flex-row flex-grow relative">
+                <div className="absolute grow w-full z-10">
+                    <div className={`w-full flex flex-col justify-between mt-2 mb-4`} style={{ height: props.calendar_height }}>
                         {timeslots.map((x) => (
                             <div key={x + "_timeslot"} className="flex items-center relative">
                                 <div className="w-16">
@@ -133,8 +133,8 @@ function Calendar(props: CalendarProps) {
                         ))}
                     </div>
                 </div>
-                <div className="flex grow pl-16 z-20" id="body_calendar">
-                    <div className="grid grid-cols-5 grow gap-x-4 gap-y-[1px] mx-4 mt-5 mb-7">
+                <div className="flex grow pl-16" id="body_calendar">
+                    <div className="relative grid grid-cols-5 grow gap-x-4 gap-y-[1px] mx-4 mt-5 mb-7">
                         {days.map((day) => (
                             <div className="flex flex-col relative w-full" style={{ height: (props.calendar_height - 24) + "px" }} id={`calendar_${day}`}>
                                 {classBlocks.map((x: ClassBlock, index: number) => (
