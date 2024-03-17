@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Class from "./Class.ts";
 import ClassBlock from "./ClassBlock.ts";
+import ClassItem from "./ClassItem.tsx";
 interface CalendarProps {
     start_time: number;
     end_time: number;
@@ -68,7 +69,7 @@ function Calendar(props: CalendarProps) {
             calendarData.forEach((y: Class) => {
 
                 if (((x.start >= y.start && x.start <= y.end) || (x.end >= y.start && x.end <= y.end)) && x.day_of_week === y.day_of_week) {
-                   // console.log(x.class_name + x.start + " overlaps with " + y.start + y.class_name)
+                    // console.log(x.class_name + x.start + " overlaps with " + y.start + y.class_name)
                     num_overlaps++;
                     if (x != y) {
                         if (y.overlap_pos === undefined) {
@@ -109,7 +110,7 @@ function Calendar(props: CalendarProps) {
 
     return (
         <div className="w-full h-full flex flex-col overflow-auto relative min-w-[700px]" id="div_to_print">
-            <div className="pl-16 flex flex-row w-full sticky top-0 bg-white z-50" id="header_calendar">
+            <div className="pl-16 flex flex-row w-full sticky top-0 bg-white z-40" id="header_calendar">
                 <div className="grow grid grid-cols-5 bg-white gap-4 py-4 px-4">
                     {days.map((day) => (
                         <div key={day + "_day"} className="flex flex-col justify-center items-center">
@@ -136,16 +137,14 @@ function Calendar(props: CalendarProps) {
                     <div className="grid grid-cols-5 grow gap-x-4 gap-y-[1px] mx-4 mt-5 mb-7">
                         {days.map((day) => (
                             <div className="flex flex-col relative w-full" style={{ height: (props.calendar_height - 24) + "px" }} id={`calendar_${day}`}>
-                                {classBlocks.map((x: ClassBlock) => (
-                                    <div className={`flex flex-col justify-center items-center absolute px-2`} style={{ height: x.height, top: x.top + "px", width: (x.overlaps > 0 ? (100 / x.overlaps) : 100) + "%", left: x.overlap_pos }}>
+                                {classBlocks.map((x: ClassBlock, index: number) => (
+                                    <>
                                         {x.day === day && (
-                                            <div className={`overflow-hidden overscroll-contain w-full items-center justify-center flex flex-col h-full rounded-xl w-full ${x.overlaps > 1 ? 'bg-red-100 outline-red-600' : 'bg-blue-100'} text-center outline outline-blue-200 `} >
-                                                <p className="text-neutral-900 text-sm">{x.class.department} {x.class.class_code}</p>
-                                                <p className="text-neutral-900 text-sm">{x.class.start} - {x.class.end}</p>
-                                                <p className="text-neutral-900 text-sm ">{x.class.room}</p>
+                                            <div className={`flex flex-col justify-center items-center absolute px-2`} style={{ height: x.height, top: x.top + "px", width: (x.overlaps > 0 ? (100 / x.overlaps) : 100) + "%", left: x.overlap_pos }}>
+                                                <ClassItem key={x.day + "_" + index} item={x} />
                                             </div>
                                         )}
-                                    </div>
+                                    </>
                                 ))}
                             </div>
                         ))}
