@@ -19,6 +19,7 @@ app.add_middleware(
 async def get_classes(year: int = 0, departments: List[str] = ["ENGPHYS"]):
     if(year == 2):
         departments.append("MATH")
+        
     classes = read_classes()
     # show teh 3rd column of the excel doc
     # print(classes.iloc[:, 3].head())
