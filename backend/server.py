@@ -2,6 +2,7 @@ import pandas as pd
 import json
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pyparsing import List
 
 
 app = FastAPI()
@@ -15,23 +16,23 @@ app.add_middleware(
 )
 
 @app.get("/api/classes/")
-async def get_classes(year: int = 0, departments: str = "ENGPHYS"):
+async def get_classes(year: int = 0, departments: List[str] = ["ENGPHYS"]):
+    if(year == 2):
+        departments.append("MATH")
     classes = read_classes()
     # show teh 3rd column of the excel doc
     # print(classes.iloc[:, 3].head())
     # print(classes['class_name'].head())
-
-    department = departments.split()[0]
     classes_json = []
-    if department:
-        department = department.upper()
-         # print the json object of the classes in the ENGPHYS department
-        # set the json object to be only values with department ENGPHYS
-        classes_json = json.loads(classes[classes['department'] == department].to_json(orient='records'))
+    if departments:
+        departments = [department.upper() for department in departments]
+        # print the json object of the classes in the departments
+        # set the json object to be only values with departments in the list
+        classes_json = json.loads(classes[classes['department'].isin(departments)].to_json(orient='records'))
+        print(departments)
 
     else:
-        # print the json object of the classes in the ENGPHYS department
-        # set the json object to be only values with department ENGPHYS
+        # print the json object of all classes
         classes_json = json.loads(classes.to_json(orient='records'))
         if classes_json != []:
             # remove class if class_code is null
@@ -40,12 +41,8 @@ async def get_classes(year: int = 0, departments: str = "ENGPHYS"):
                 if c['class_code']:
                     new_classes.append(c)
             classes_json = new_classes
-    
-    
-    
-       
+
     if classes_json != []:
-        
         # remove spaces from the class names
         for c in classes_json:
             if c['class_code']:
@@ -53,18 +50,14 @@ async def get_classes(year: int = 0, departments: str = "ENGPHYS"):
             else:
                 print(c)
 
-        
-        
-        # createa a new array to return the classes that start with the year
+        # create a new array to return the classes that start with the year
         if year:
-
             new_classes = []
             for c in classes_json:
                 if c['class_code'].startswith(str(year)):
                     new_classes.append(c)
-
             classes_json = new_classes
-        
+
         extras = read_extras(year, departments)
         if extras:
             classes_json = classes_json + extras
@@ -92,7 +85,7 @@ async def get_classes(year: int = 0, departments: str = "ENGPHYS"):
                     c['start'] = str(c['start']).replace('.', ':')
                 else:
                     c['start'] = str(c['start']) + ':00'
-                
+
                 if c['start'].startswith('0'):
                     c['start'] = c['start'][1:]
             if c['end']:
@@ -102,7 +95,7 @@ async def get_classes(year: int = 0, departments: str = "ENGPHYS"):
                     c['end'] = str(c['end']).replace('.', ':')
                 else:
                     c['end'] = str(c['end']) + ':00'
-                
+
                 if c['end'].startswith('0'):
                     c['end'] = c['end'][1:]
         return classes_json
