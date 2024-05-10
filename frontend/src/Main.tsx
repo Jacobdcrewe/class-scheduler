@@ -10,12 +10,14 @@ function Main() {
   const yearOptions = [1,2,3,4,5];
   const [department, setDepartment] = useState("ENGPHYS");
   const [departmentOptions, setDepartmentOptions] = useState(["ENGPHYS"]);
+  const semesterOptions = ["Fall", "Winter"];
+  const [semester, setSemester] = useState("Fall");
   const [height, setHeight] = useState(768);
 
 
   useEffect(() => {
     const getDepartments = async () => {
-      const response = await fetch(`${url}/api/extra_sections/?level=${year}`);
+      const response = await fetch(`${url}/api/extra_sections/?level=${year}&semester=${semester}`);
       const data = await response.json();
       if (data) {
         setDepartmentOptions(["ENGPHYS", ...data]);
@@ -24,7 +26,8 @@ function Main() {
     }
 
     getDepartments()
-  }, [year])
+  }, [year, semester])
+
   const printDocument = () => {
     const input = document.getElementById('div_to_print');
     if (input) {
@@ -58,6 +61,11 @@ function Main() {
             return <option key={x} value={x}>{x}</option>
           })}
         </select>
+        <select className="bg-white rounded-xl px-2 py-1 m-4" value={semester} onChange={(e) => setSemester(e.target.value)}>
+          {semesterOptions.map((x) => {
+            return <option key={x} value={x}>{x}</option>
+          })}
+        </select>
         <div className="ml-auto mr-4 min-h-12 h-full flex items-center justify-center gap-2">
           <button className=" rounded-xl p2 ml-auto" onClick={() => setHeight(height - 50)}><MagnifyingGlassMinusIcon className="w-8 aspect-square" /></button>
           <button className=" rounded-xl p2 ml-auto" onClick={() => setHeight(height + 50)}><MagnifyingGlassPlusIcon className="w-8 aspect-square" /></button>
@@ -67,7 +75,7 @@ function Main() {
 
       </div>
       <div className="flex flex-grow rounded-xl bg-neutral-100 overflow-hidden min-w-[700px]">
-        <Calendar start_time={8} end_time={19} calendar_height={height} department={department} year={year} />
+        <Calendar start_time={8} end_time={19} calendar_height={height} department={department} year={year} semester={semester} />
       </div>
     </div>
   );

@@ -8,11 +8,12 @@ interface CalendarProps {
     calendar_height: number;
     year: number;
     department: string;
+    semester: string;
 }
 
 const url = "http://localhost:8000";
-const getCalendarData = async (year: number, department: string) => {
-    const response = await fetch(`${url}/api/classes/?year=${year}&departments=${department}`);
+const getCalendarData = async (year: number, department: string, semester: string) => {
+    const response = await fetch(`${url}/api/classes/?year=${year}&departments=${department}&semester=${semester}`);
     const data = await response.json();
     return data;
 
@@ -42,13 +43,13 @@ function Calendar(props: CalendarProps) {
         setClassBlocks([]);
         setCalendarData([]);
         const fetchData = async () => {
-            const data = await getCalendarData(props.year, props.department);
+            const data = await getCalendarData(props.year, props.department, props.semester);
             if (!data.error) {
                 setCalendarData(data);
             }
         }
         fetchData();
-    }, [props.calendar_height, props.year, props.department]);
+    }, [props.calendar_height, props.year, props.department, props.semester]);
 
     // after being given the calendar start and end date and the day of the week, return the classes that are on that day
     // and the height and position of the class block
