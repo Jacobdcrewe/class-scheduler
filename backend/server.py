@@ -1,8 +1,8 @@
 import pandas as pd
 import json
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pyparsing import List
+from typing import Annotated, List, Union
 
 
 app = FastAPI()
@@ -16,10 +16,11 @@ app.add_middleware(
 )
 
 @app.get("/api/classes/")
-async def get_classes(year: int = 0, departments: List[str] = ["ENGPHYS"], semester: str = "FALL"):
+async def get_classes(year: int = 0, departments: Annotated[Union[list[str], None], Query()] = ['ENGPHYS'], semester: str = "FALL"):
     if(year == 2):
         departments.append("MATH")
     departments.append("ENGINEER")
+
     semester = semester.upper()
     classes = read_classes(semester)
     # show teh 3rd column of the excel doc
@@ -30,8 +31,9 @@ async def get_classes(year: int = 0, departments: List[str] = ["ENGPHYS"], semes
         departments = [department.upper() for department in departments]
         # print the json object of the classes in the departments
         # set the json object to be only values with departments in the list
+        if 'ENGPHYS' not in departments:
+            departments.append('ENGPHYS')
         classes_json = json.loads(classes[classes['department'].isin(departments)].to_json(orient='records'))
-        print(departments)
 
     else:
         # print the json object of all classes
@@ -43,7 +45,6 @@ async def get_classes(year: int = 0, departments: List[str] = ["ENGPHYS"], semes
                 if c['class_code']:
                     new_classes.append(c)
             classes_json = new_classes
-
     if classes_json != []:
         # remove spaces from the class names
         for c in classes_json:
@@ -197,7 +198,7 @@ def read_extras(level, section, semester: str):
     # rename the columns
     extras.columns = ['code', 'department', 'class_code', 'class_name', 'lecture_code', 'day_of_week', 'start', 'end', 'room']
     extras.dropna(how='all', inplace=True)
-    
+    # print(extras)
     # Separate into separate sections based on headings
     sections = []
     current_section = None
@@ -212,16 +213,15 @@ def read_extras(level, section, semester: str):
             if current_section:
                 sec = sections[-1]
                 sec['classes'].append(row.to_dict())
-
     # Filter classes based on level and section
     filtered_classes = []
-    for s in sections:
-        print(s['level'], level)
-        print(s['section'], section)
-        if s['level'] == level and s['section'] == section:
-            filtered_classes = s['classes']
-            break
-    
+    for sect in section:
+        for s in sections:
+            # print(s['level'], level)
+            # print(s['section'], sect)
+            if int(s['level']) == int(level) and s['section'].upper() == sect:
+                filtered_classes = s['classes']
+                break
     return filtered_classes
 
 def read_extra_sections_on_level(level, semester: str):
