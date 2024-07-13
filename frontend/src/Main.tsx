@@ -3,21 +3,21 @@ import Calendar from "./components/calendar/Calendar.tsx";
 import { MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon, ArrowPathIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-
+import {Semester} from "./components/shared/Semester.ts";
 const url = "http://localhost:8000";
 function Main() {
   const [year, setYear] = useState(3);
   const yearOptions = [1,2,3,4,5];
   const [department, setDepartment] = useState("ENGPHYS");
   const [departmentOptions, setDepartmentOptions] = useState(["ENGPHYS"]);
-  const semesterOptions = ["Fall", "Winter"];
-  const [semester, setSemester] = useState("Fall");
+  const semesterOptions = [Semester.FALL, Semester.WINTER];
+  const [semester, setSemester] = useState(Semester.FALL);
   const [height, setHeight] = useState(768);
 
 
   useEffect(() => {
     const getDepartments = async () => {
-      const response = await fetch(`${url}/api/extra_sections/?level=${year}&semester=${semester}`);
+      const response = await fetch(`${url}/api/extra_sections?level=${year}&semester=${semester}`);
       const data = await response.json();
       if (data) {
         setDepartmentOptions(["ENGPHYS", ...data]);
@@ -61,7 +61,7 @@ function Main() {
             return <option key={x} value={x}>{x}</option>
           })}
         </select>
-        <select className="bg-white rounded-xl px-2 py-1 m-4" value={semester} onChange={(e) => setSemester(e.target.value)}>
+        <select className="bg-white rounded-xl px-2 py-1 m-4" value={semester} onChange={(e) => setSemester(e.target.value as Semester)}>
           {semesterOptions.map((x) => {
             return <option key={x} value={x}>{x}</option>
           })}

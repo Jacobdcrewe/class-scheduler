@@ -25,8 +25,9 @@ export default function ClassItem(props: any) {
                     <p>{props.item.class.department} {props.item.class.class_code}</p>
                     <p>{props.item.day}</p>
                     <p>{convertTo12Hour(props.item.class.start)} - {convertTo12Hour(props.item.class.end)}</p>
-                    <p>{props.item.class.room}</p>
-                    <p>{props.item.class.class_name}</p>
+                    {props.item.class.department === 'ENGPHYS' && <p>Room: {props.item.class.room}</p>}
+                    <p>Class Name: {props.item.class.class_name}</p>
+                    <p>Section: {props.item.class.lecture_code}</p>
                 </div>
             </div>
 

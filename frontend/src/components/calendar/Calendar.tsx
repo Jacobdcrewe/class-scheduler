@@ -2,17 +2,18 @@ import React, { useState, useEffect } from "react";
 import Class from "./Class.ts";
 import ClassBlock from "./ClassBlock.ts";
 import ClassItem from "./ClassItem.tsx";
+import {Semester} from "../shared/Semester.ts";
 interface CalendarProps {
     start_time: number;
     end_time: number;
     calendar_height: number;
     year: number;
     department: string;
-    semester: string;
+    semester: Semester;
 }
 
 const url = "http://localhost:8000";
-const getCalendarData = async (year: number, department: string, semester: string) => {
+const getCalendarData = async (year: number, department: string, semester: Semester) => {
     const response = await fetch(`${url}/api/classes/?year=${year}&departments=${department}&semester=${semester}`);
     const data = await response.json();
     return data;
