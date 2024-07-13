@@ -56,6 +56,7 @@ function Calendar(props: CalendarProps) {
     // and the height and position of the class block
     useEffect(() => {
         var tempClassBlocks: any = [];
+
         calendarData.forEach((x: Class) => {
             var day = (days.find((day) => day.includes((x.day_of_week))))
             if (day === undefined) {
@@ -73,7 +74,7 @@ function Calendar(props: CalendarProps) {
                 if (((x.start >= y.start && x.start <= y.end) || (x.end >= y.start && x.end <= y.end)) && x.day_of_week === y.day_of_week) {
                     // console.log(x.class_name + x.start + " overlaps with " + y.start + y.class_name)
                     num_overlaps++;
-                    if (x != y) {
+                    if (x !== y) {
                         if (y.overlap_pos === undefined) {
                             y.overlap_pos = 1;
                         } else {
