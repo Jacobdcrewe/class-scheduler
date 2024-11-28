@@ -4,6 +4,7 @@ import { MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon, ArrowPathIcon, Arrow
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import {Semester} from "./components/shared/Semester.ts";
+import Class from "./components/calendar/Class.ts";
 const url = "http://localhost:8000";
 function Main() {
   const [year, setYear] = useState(3);
@@ -12,6 +13,8 @@ function Main() {
   const [departmentOptions, setDepartmentOptions] = useState(["ENGPHYS"]);
   const semesterOptions = [Semester.FALL, Semester.WINTER];
   const [semester, setSemester] = useState(Semester.FALL);
+  const [sectionOptions, setSectionOptions] = useState(["All"]);
+  const [section, setSection] = useState("All");
   const [height, setHeight] = useState(768);
 
 
@@ -24,8 +27,21 @@ function Main() {
       }
 
     }
+    const getCalendarData = async (year: number, department: string, semester: Semester) => {
+      const response = await fetch(`${url}/api/classes/?year=${year}&departments=${department}&semester=${semester}`);
+      const data = await response.json();
+      console.log(data)
+      
+      if(data) {
+        const distinct_items = [...new Set(data.map((x: Class) => x.lecture_code))];
+        console.log(distinct_items)
+        setSectionOptions(["All", ...distinct_items as string[]]);
+      }
+  
+  }
 
     getDepartments()
+    getCalendarData(year, department, semester)
   }, [year, semester])
 
   const printDocument = () => {
@@ -66,6 +82,11 @@ function Main() {
             return <option key={x} value={x}>{x}</option>
           })}
         </select>
+        <select className="bg-white rounded-xl px-2 py-1 m-4" value={section} onChange={(e) => setSection(e.target.value)}>
+          {sectionOptions.map((x) => {
+            return <option key={x} value={x}>{x}</option>
+          })}
+        </select>
         <div className="ml-auto mr-4 min-h-12 h-full flex items-center justify-center gap-2">
           <button className=" rounded-xl p2 ml-auto" onClick={() => setHeight(height - 50)}><MagnifyingGlassMinusIcon className="w-8 aspect-square" /></button>
           <button className=" rounded-xl p2 ml-auto" onClick={() => setHeight(height + 50)}><MagnifyingGlassPlusIcon className="w-8 aspect-square" /></button>
@@ -75,7 +96,7 @@ function Main() {
 
       </div>
       <div className="flex flex-grow rounded-xl bg-neutral-100 overflow-hidden min-w-[700px]">
-        <Calendar start_time={8} end_time={19} calendar_height={height} department={department} year={year} semester={semester} />
+        <Calendar start_time={8} end_time={19} calendar_height={height} department={department} year={year} semester={semester} section={section} />
       </div>
     </div>
   );
