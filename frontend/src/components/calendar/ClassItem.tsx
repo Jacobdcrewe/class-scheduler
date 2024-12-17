@@ -35,6 +35,7 @@ export default function ClassItem(props: any) {
                 <p className="text-neutral-900 text-sm">{props.item.class.department} {props.item.class.class_code}</p>
                 <p className="text-neutral-900 text-sm">{props.item.class.start} - {props.item.class.end}</p>
                 <p className="text-neutral-900 text-sm ">{props.item.class.room}</p>
+                <p className="text-neutral-900 text-sm ">{props.item.class.lecture_code}</p>
             </div>
         </>
 
