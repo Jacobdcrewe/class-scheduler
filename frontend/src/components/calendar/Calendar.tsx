@@ -61,46 +61,87 @@ function Calendar(props: CalendarProps) {
     // after being given the calendar start and end date and the day of the week, return the classes that are on that day
     // and the height and position of the class block
     useEffect(() => {
-        var tempClassBlocks: any = [];
-
-        calendarData.forEach((x: Class) => {
-            var day = (days.find((day) => day.includes((x.day_of_week))))
-            if (day === undefined) {
-                return;
-            }
-            var start = convertTimeToNumberal(x.start) - props.start_time;
-            var end = convertTimeToNumberal(x.end) - props.start_time;
-            var block_height = (end - start) * (props.calendar_height - 24) / (props.end_time - props.start_time);
-            var num_overlaps = 0;
-            if (x.overlap_pos === undefined) {
-                x.overlap_pos = 0;
-            }
-            calendarData.forEach((y: Class) => {
-
-                if (((x.start >= y.start && x.start <= y.end) || (x.end >= y.start && x.end <= y.end)) && x.day_of_week === y.day_of_week) {
-                    // console.log(x.class_name + x.start + " overlaps with " + y.start + y.class_name)
-                    num_overlaps++;
-                    if (x !== y) {
-                        if (y.overlap_pos === undefined) {
-                            y.overlap_pos = 1;
-                        } else {
-                            y.overlap_pos += 1;
-                        }
+        const organizeClassesByDayAndOverlap = (calendarData: Class[]) => {
+            let organizedSchedule: Record<string, Class[][]> = {};
+        
+            // Convert start/end times to numbers for easier comparison
+            const convertTime = (time: string | null | undefined): number => {
+                if (!time) return -1; // Handle null/undefined cases
+                const [hours, minutes] = time.split(":").map(Number);
+                return hours * 60 + minutes; // Convert to minutes
+            };
+        
+            // Group classes by day
+            calendarData.forEach((cls) => {
+                if (!cls.start || !cls.end) {
+                    console.warn("Skipping class with missing time:", cls);
+                    return; // Skip classes with missing start/end time
+                }
+        
+                if (!organizedSchedule[cls.day_of_week]) {
+                    organizedSchedule[cls.day_of_week] = [];
+                }
+        
+                const clsStart = convertTime(cls.start);
+                const clsEnd = convertTime(cls.end);
+                let added = false;
+        
+                // Check existing overlap groups
+                for (let group of organizedSchedule[cls.day_of_week]) {
+                    if (group.some((g) => {
+                        const gStart = convertTime(g.start);
+                        const gEnd = convertTime(g.end);
+                        return (clsStart < gEnd && clsEnd > gStart); // Correct overlap check
+                    })) {
+                        group.push(cls);
+                        added = true;
+                        break;
                     }
                 }
-            })
-
-            var wid = document.getElementById(`calendar_${day}`)?.clientWidth || 0;
-
-            tempClassBlocks.push({
-                class: x,
-                day: day,
-                height: block_height,
-                top: start * (props.calendar_height - 24) / (props.end_time - props.start_time),
-                overlaps: num_overlaps,
-                overlap_pos: x.overlap_pos * wid / num_overlaps
+        
+                // If no overlap found, create a new group
+                if (!added) {
+                    organizedSchedule[cls.day_of_week].push([cls]);
+                }
             });
-        });
+        
+            return organizedSchedule;
+        };
+        
+        // Usage
+        const organizedClasses = organizeClassesByDayAndOverlap(calendarData);
+        console.log(organizedClasses);
+        
+        var tempClassBlocks: any = [];
+        days.forEach((day) => {
+            if (organizedClasses[day.substring(0, 2)]) {
+                // var start = convertTimeToNumberal(x.start) - props.start_time;
+                // var end = convertTimeToNumberal(x.end) - props.start_time;
+                // var block_height = (end - start) * (props.calendar_height - 24) / (props.end_time - props.start_time);
+                // var num_overlaps = 0;
+                organizedClasses[day.substring(0,2)].forEach((group) => {
+                    var overlap_pos = 0;
+                    group.forEach((x: Class) => {
+                        var start = convertTimeToNumberal(x.start) - props.start_time;
+                        var end = convertTimeToNumberal(x.end) - props.start_time;
+                        var block_height = (end - start) * (props.calendar_height - 24) / (props.end_time - props.start_time);
+                        var num_overlaps = group.length;
+                        x.overlap_pos = overlap_pos;
+                        overlap_pos++;
+
+                        var wid = document.getElementById(`calendar_${day}`)?.clientWidth || 0;
+                        tempClassBlocks.push({
+                            class: x,
+                            day: day,
+                            height: block_height,
+                            top: start * (props.calendar_height - 24) / (props.end_time - props.start_time),
+                            overlaps: num_overlaps,
+                            overlap_pos: x.overlap_pos * wid / num_overlaps
+                        });
+                    });
+                });
+            }
+        })
 
         setClassBlocks(tempClassBlocks);
     }, [calendarData, props.calendar_height, props.start_time, props.end_time]);
