@@ -3,6 +3,7 @@ import Class from "./Class.ts";
 import ClassBlock from "./ClassBlock.ts";
 import ClassItem from "./ClassItem.tsx";
 import {Semester} from "../shared/Semester.ts";
+// /import generateScheduleDoc from "../../services/DocDownloader.ts";
 interface CalendarProps {
     start_time: number;
     end_time: number;
@@ -11,7 +12,9 @@ interface CalendarProps {
     department: string;
     semester: Semester;
     section: string;
+    onOrganizedClassesUpdate?: (organizedClasses: Record<string, Class[][]>) => void;
 }
+
 
 const url = "http://localhost:8000";
 const getCalendarData = async (year: number, department: string, semester: Semester) => {
@@ -27,6 +30,7 @@ const getCalendarData = async (year: number, department: string, semester: Semes
 function Calendar(props: CalendarProps) {
     const [calendarData, setCalendarData] = useState([]);
     const [classBlocks, setClassBlocks] = useState([]);
+    const [organizedCLassesState, setOrganizedClassesState] = useState({});
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     // create a range from start_time to end_time in 24 hour format
     var timeslot_range = (start, end) => [...Array(end - start + 1)].map((_, i) => start + i);
@@ -110,8 +114,12 @@ function Calendar(props: CalendarProps) {
         
         // Usage
         const organizedClasses = organizeClassesByDayAndOverlap(calendarData);
-        console.log(organizedClasses);
-        
+        setOrganizedClassesState(organizedClasses);
+        // Notify parent component
+        if (props.onOrganizedClassesUpdate) {
+            props.onOrganizedClassesUpdate(organizedClasses);
+        }
+
         var tempClassBlocks: any = [];
         days.forEach((day) => {
             if (organizedClasses[day.substring(0, 2)]) {

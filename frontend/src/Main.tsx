@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Calendar from "./components/calendar/Calendar.tsx";
-import { MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon, ArrowPathIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon, ArrowPathIcon, ArrowDownTrayIcon, DocumentArrowDownIcon } from "@heroicons/react/24/outline";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import {Semester} from "./components/shared/Semester.ts";
 import Class from "./components/calendar/Class.ts";
+import generateScheduleDoc from "./services/DocDownloader.ts";
+
 const url = "http://localhost:8000";
 function Main() {
   const [year, setYear] = useState(3);
@@ -16,7 +18,7 @@ function Main() {
   const [sectionOptions, setSectionOptions] = useState(["All"]);
   const [section, setSection] = useState("All");
   const [height, setHeight] = useState(768);
-
+  const [organizedClasses, setOrganizedClasses] = useState<Record<string, Class[][]>>({});
 
   useEffect(() => {
     const getDepartments = async () => {
@@ -63,6 +65,15 @@ function Main() {
         });
     }
   }
+  const handleOrganizedClassesUpdate = (organizedClasses: Record<string, Class[][]>) => {
+    setOrganizedClasses(organizedClasses);
+};
+  const downloadDoc = () =>{
+    // get state from claendar
+    if(organizedClasses){
+      generateScheduleDoc(organizedClasses);
+    }
+  }
   return (
 
     <div className="w-screen h-screen bg-black text-neutral-900 p-2 overflow-hidden flex gap-4 flex-col">
@@ -92,11 +103,13 @@ function Main() {
           <button className=" rounded-xl p2 ml-auto" onClick={() => setHeight(height + 50)}><MagnifyingGlassPlusIcon className="w-8 aspect-square" /></button>
           <button className=" rounded-xl p2 ml-auto" onClick={() => setHeight(768)}><ArrowPathIcon className="w-8 aspect-square" /></button>
           <button className=" rounded-xl p2 ml-auto" onClick={() => printDocument()}><ArrowDownTrayIcon className="w-8 aspect-square" /></button>
+          <button className=" rounded-xl p2 ml-auto" onClick={() => downloadDoc()}><DocumentArrowDownIcon className="w-8 aspect-square" /></button>
         </div>
 
       </div>
       <div className="flex flex-grow rounded-xl bg-neutral-100 overflow-hidden min-w-[700px]">
-        <Calendar start_time={8} end_time={19} calendar_height={height} department={department} year={year} semester={semester} section={section} />
+        <Calendar start_time={8} end_time={19} calendar_height={height} department={department} year={year} semester={semester} section={section} onOrganizedClassesUpdate={handleOrganizedClassesUpdate}
+        />
       </div>
     </div>
   );
